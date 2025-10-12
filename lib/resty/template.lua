@@ -66,7 +66,7 @@ local PERCNT = byte("%")
 local EMPTY  = ""
 
 local VIEW_ENV
-if _VERSION == "Lua 5.1" then
+if _VERSION == "Lua 5.1" or _VERSION == "Luau" then
     VIEW_ENV = { __index = function(t, k)
         return t.context[k] or t.template[k] or _G[k]
     end }
