@@ -5,10 +5,8 @@ local setfenv = setfenv
 local require = require
 local concat = table.concat
 local assert = assert
-local write = io.write
 local pcall = pcall
 local phase
-local open = io.open
 local load = load
 local type = type
 local dump = string.dump
@@ -24,6 +22,9 @@ local var
 local _VERSION = _VERSION
 local _ENV = _ENV -- luacheck: globals _ENV
 local _G = _G
+
+local write_print = (io and io.write) or function(...) print(table.concat({...}, "")) end
+local open = (io and io.open) or function(filename, mode) return nil, "io.open is not permitted in this environment" end
 
 local HTML_ENTITIES = {
     ["&"] = "&amp;",
@@ -127,7 +128,7 @@ end
 local print_view
 local load_view
 if ngx then
-    print_view = ngx.print or write
+    print_view = ngx.print or write_print
 
     var = ngx.var
     null = ngx.null
@@ -177,7 +178,7 @@ if ngx then
         end
     end
 else
-    print_view = write
+    print_view = write_print
     load_view = function(template)
         return function(view, plain)
             if plain == true then return view end
