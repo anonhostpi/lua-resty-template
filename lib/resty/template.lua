@@ -1,37 +1,57 @@
--- SANDBOX CHECKS
-local IO_WRITE_PRESENT = io and type(io.write) == "function"
-local IO_OPEN_PRESENT = io and type(io.open) == "function"
-
 -- FUNCTION POLLUTION PROTECTION
+local getmetatable = getmetatable
 local setmetatable = setmetatable
-local loadstring = loadstring
 local tostring = tostring
-local setfenv = setfenv
-local require = require
 local concat = table.concat
 local assert = assert
 local pcall = pcall
-local phase
-local load = load
 local type = type
 local dump = string.dump
 local find = string.find
 local gsub = string.gsub
 local byte = string.byte
-local null
 local sub = string.sub
 local ngx = ngx
 local jit = jit
-local var
 
--- VAR POLLUTION PROTECTION
-local _VERSION = _VERSION
+-- NOT SANDBOX-PROTECTED:
+local loadstring = loadstring
+local setfenv = setfenv
+local load = load
+
+-- SANDBOX-PROTECTED: STUBBED LATER
+local require = require
 local _ENV = _ENV -- luacheck: globals _ENV
 local _G = _G
 
--- SANDBOX STUBBING
+-- SANDBOXING: PRESENCE CHECKS
+local function is_callable(value)
+    if type(value) == "function" then
+        return true
+    end
+    local mt = getmetatable(mt.__call)
+    return mt and type(mt.__call) == "function"
+end
+local IO_WRITE_PRESENT    = io and is_callable(io.write)
+local IO_OPEN_PRESENT     = io and is_callable(io.open)
+local SETFENV_PRESENT     = is_callable(setfenv)
+local LOADSTRING_PRESENT  = is_callable(loadstring)
+local LOAD_PRESENT        = is_callable(load)
+local REQUIRE_PRESENT     = is_callable(require)
+local _ENV_PRESENT        = not not _ENV
+local _G_PRESENT          = not not _G
+
+-- SANDBOX-PROTECTED: STUBBED NOW
 local write_print = (IO_WRITE_PRESENT and io.open) or function(...) print(table.concat({...}, "")) end
 local open = (IO_OPEN_PRESENT and io.open) or function(filename, mode) return nil, "io.open is not permitted in this environment" end
+
+-- VAR POLLUTION PROTECTION
+local _VERSION = _VERSION
+
+-- NORMAL LOCALS
+local phase
+local null
+local var
 
 local HTML_ENTITIES = {
     ["&"] = "&amp;",
