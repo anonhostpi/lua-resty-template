@@ -90,9 +90,9 @@ template.render([[
   - [string template.parse(view, plain)](#string-templateparseview-plain)
   - [string template.parse_string(view, plain)](#string-templateparse_stringview-plain)
   - [string template.parse_file(view, plain)](#string-templateparse_fileview-plain)
-  - [string template.precompile(view, path, strip)](#string-templateprecompileview-path-strip)
-  - [string template.precompile_string(view, path, strip)](#string-templateprecompile_stringview-path-strip)
-  - [string template.precompile_file(view, path, strip)](#string-templateprecompile_fileview-path-strip)  
+  - [string template.precompile(view, path, strip, plain) **_\*(4)_**](#string-templateprecompileview-path-strip-plain)
+  - [string template.precompile_string(view, path, strip) **_\*(4)_**](#string-templateprecompile_stringview-path-strip)
+  - [string template.precompile_file(view, path, strip) **_\*(4)_**](#string-templateprecompile_fileview-path-strip)  
   - [string template.load(view, plain)](#string-templateloadview-plain)
   - [string template.load_string(view)](#string-templateload_stringview)
   - [string template.load_file(view)](#string-templateload_fileview)
@@ -806,6 +806,7 @@ This just calls `template.parse(view, plain, false)`
 
 
 #### string template.precompile(view, path, strip, plain)
+- If `io.open` is unavailable (4): `string template.precompile(view, strip, plain)`
 
 (2) AOT-compiles template to a bytecode binary chunk. This binary chunk can be written out as a file (and you may use it
 directly with Lua's `load` and `loadfile`). For convenience you may optionally specify `path` argument to
@@ -841,11 +842,13 @@ template.render("precompiled-bin.html", {
 
 
 #### string template.precompile_string(view, path, strip)
+- If `io.open` is unavailable (4): `string template.precompile_string(view, strip)`
 
 This just calls `template.precompile(view, path, strip, true)`.
 
 
 #### string template.precompile_file(view, path, strip)
+- If `io.open` is unavailable (4): `string template.precompile_file(view, path, strip)`
 
 This just calls `template.precompile(view, path, strip, false)`.
 
