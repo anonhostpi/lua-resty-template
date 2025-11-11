@@ -6,7 +6,6 @@ local concat = table.concat
 local assert = assert
 local pcall = pcall
 local type = type
-local dump = string.dump
 local find = string.find
 local gsub = string.gsub
 local byte = string.byte
@@ -20,6 +19,7 @@ local load = load
 
 -- SANDBOX-PROTECTED: STUBBED LATER
 local require = require
+local dump = string.dump
 local _ENV = _ENV -- luacheck: globals _ENV
 local _G = _G
 
@@ -37,6 +37,7 @@ local SETFENV_PRESENT     = is_callable(setfenv)
 local LOADSTRING_PRESENT  = is_callable(loadstring)
 local LOAD_PRESENT        = is_callable(load)
 local REQUIRE_PRESENT     = is_callable(require)
+local STRING_DUMP_PRESENT = is_callable(dump)
 local _ENV_PRESENT        = not not _ENV
 local _G_PRESENT          = not not _G
 
@@ -390,22 +391,24 @@ local function new(template, safe)
         })
     end
 
-    function template.precompile(view, path, strip, plain)
-        local chunk = dump(template.compile(view, nil, plain), strip ~= false)
-        if path then
-            local file = open(path, "wb")
-            file:write(chunk)
-            file:close()
+    if STRING_DUMP_PRESENT and IO_OPEN_PRESENT then
+        function template.precompile(view, path, strip, plain)
+            local chunk = dump(template.compile(view, nil, plain), strip ~= false)
+            if path then
+                local file = open(path, "wb")
+                file:write(chunk)
+                file:close()
+            end
+            return chunk
         end
-        return chunk
-    end
-
-    function template.precompile_string(view, path, strip)
-        return template.precompile(view, path, strip, true)
-    end
-
-    function template.precompile_file(view, path, strip)
-        return template.precompile(view, path, strip, false)
+    
+        function template.precompile_string(view, path, strip)
+            return template.precompile(view, path, strip, true)
+        end
+    
+        function template.precompile_file(view, path, strip)
+            return template.precompile(view, path, strip, false)
+        end
     end
 
     function template.compile(view, cache_key, plain)
