@@ -391,23 +391,37 @@ local function new(template, safe)
         })
     end
 
-    if STRING_DUMP_PRESENT and IO_OPEN_PRESENT then
-        function template.precompile(view, path, strip, plain)
-            local chunk = dump(template.compile(view, nil, plain), strip ~= false)
-            if path then
-                local file = open(path, "wb")
-                file:write(chunk)
-                file:close()
+    if STRING_DUMP_PRESENT then
+        if IO_OPEN_PRESENT then
+            function template.precompile(view, path, strip, plain)
+                local chunk = dump(template.compile(view, nil, plain), strip ~= false)
+                if path then
+                    local file = open(path, "wb")
+                    file:write(chunk)
+                    file:close()
+                end
+                return chunk
             end
-            return chunk
-        end
-    
-        function template.precompile_string(view, path, strip)
-            return template.precompile(view, path, strip, true)
-        end
-    
-        function template.precompile_file(view, path, strip)
-            return template.precompile(view, path, strip, false)
+        
+            function template.precompile_string(view, path, strip)
+                return template.precompile(view, path, strip, true)
+            end
+        
+            function template.precompile_file(view, path, strip)
+                return template.precompile(view, path, strip, false)
+            end
+        else
+            function template.precompile(view, strip, plain)
+                return dump(template.compile(view, nil, plain), strip ~= false)
+            end
+        
+            function template.precompile_string(view, strip)
+                return template.precompile(view, strip, true)
+            end
+        
+            function template.precompile_file(view, strip)
+                return template.precompile(view, strip, false)
+            end
         end
     end
 
