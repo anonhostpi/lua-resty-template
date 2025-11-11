@@ -12,7 +12,6 @@ local gsub = string.gsub
 local byte = string.byte
 local sub = string.sub
 local ngx = ngx
-local jit = jit
 
 -- NOT SANDBOX-PROTECTED:
 local loadstring = loadstring
@@ -44,9 +43,6 @@ local _G_PRESENT          = not not _G
 -- SANDBOX-PROTECTED: STUBBED NOW
 local write_print = (IO_WRITE_PRESENT and io.open) or function(...) print(table.concat({...}, "")) end
 local open = (IO_OPEN_PRESENT and io.open) or function(filename, mode) return nil, "io.open is not permitted in this environment" end
-
--- VAR POLLUTION PROTECTION
-local _VERSION = _VERSION
 
 -- NORMAL LOCALS
 local phase
@@ -94,13 +90,17 @@ local PERCNT = byte("%")
 local EMPTY  = ""
 
 local VIEW_ENV
-if _VERSION == "Lua 5.1" or _VERSION == "Luau" then
+if _G_PRESENT then
     VIEW_ENV = { __index = function(t, k)
         return t.context[k] or t.template[k] or _G[k]
     end }
-else
+elseif _ENV_PRESENT
     VIEW_ENV = { __index = function(t, k)
         return t.context[k] or t.template[k] or _ENV[k]
+    end }
+else -- optimized sandboxed def
+    VIEW_ENV = { __index = function(t, k)
+        return t.context[k] or t.template[k]
     end }
 end
 
@@ -229,13 +229,13 @@ local function load_string(func)
 end
 
 local loader
-if jit or _VERSION ~= "Lua 5.1" then
+if LOAD_PRESENT then
     loader = function(template)
         return function(view)
             return assert(load(view, nil, nil, setmetatable({ template = template }, VIEW_ENV)))
         end
     end
-else
+elseif LOADSTRING_PRESENT
     loader = function(template)
         return function(view)
             local func = assert(loadstring(view))
@@ -243,6 +243,8 @@ else
             return func
         end
     end
+else
+    error("Dynamic template loading is not supported in this Lua environment")
 end
 
 local function visit(visitors, content, tag, name)
