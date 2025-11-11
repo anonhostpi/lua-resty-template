@@ -1,3 +1,8 @@
+-- SANDBOX CHECKS
+local IO_WRITE_PRESENT = io and type(io.write) == "function"
+local IO_OPEN_PRESENT = io and type(io.open) == "function"
+
+-- FUNCTION POLLUTION PROTECTION
 local setmetatable = setmetatable
 local loadstring = loadstring
 local tostring = tostring
@@ -19,12 +24,14 @@ local ngx = ngx
 local jit = jit
 local var
 
+-- VAR POLLUTION PROTECTION
 local _VERSION = _VERSION
 local _ENV = _ENV -- luacheck: globals _ENV
 local _G = _G
 
-local write_print = (io and type(io.write) == "function") or function(...) print(table.concat({...}, "")) end
-local open = (io and type(io.open) == "function") or function(filename, mode) return nil, "io.open is not permitted in this environment" end
+-- SANDBOX STUBBING
+local write_print = (IO_WRITE_PRESENT and io.open) or function(...) print(table.concat({...}, "")) end
+local open = (IO_OPEN_PRESENT and io.open) or function(filename, mode) return nil, "io.open is not permitted in this environment" end
 
 local HTML_ENTITIES = {
     ["&"] = "&amp;",
