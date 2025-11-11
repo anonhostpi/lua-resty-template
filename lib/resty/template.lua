@@ -23,8 +23,8 @@ local _VERSION = _VERSION
 local _ENV = _ENV -- luacheck: globals _ENV
 local _G = _G
 
-local write_print = (io and io.write) or function(...) print(table.concat({...}, "")) end
-local open = (io and io.open) or function(filename, mode) return nil, "io.open is not permitted in this environment" end
+local write_print = (io and type(io.write) == "function") or function(...) print(table.concat({...}, "")) end
+local open = (io and type(io.open) == "function") or function(filename, mode) return nil, "io.open is not permitted in this environment" end
 
 local HTML_ENTITIES = {
     ["&"] = "&amp;",
